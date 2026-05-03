@@ -1,0 +1,140 @@
+groups:
+  - name: mcp_transport_alerts
+    rules:
+      - alert: LowHandshakeSuccessRate
+        expr: sum(mcp_handshake_total{status="success"}) / sum(mcp_handshake_total) < 0.99
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MCP handshake success rate below 99%"
+          description: "Handshake success rate is {{ $value | humanizePercentage }}. Clients cannot connect."
+
+      - alert: HighReconnectionRate
+        expr: sum(rate(mcp_reconnection_total[5m])) > 1
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High reconnection rate detected"
+          description: "Reconnection rate is {{ $value }}/s — indicates network instability."
+
+  - name: mcp_tool_alerts
+    rules:
+      - alert: HighToolErrorRate
+        expr: sum(rate(mcp_tool_calls_total{status="error"}[5m])) / sum(rate(mcp_tool_calls_total[5m])) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MCP tool error rate above 10%"
+          description: "Error rate is {{ $value | humanizePercentage }} over the last 5 minutes."
+
+      - alert: HighToolLatency
+        expr: histogram_quantile(0.95, sum(rate(mcp_tool_duration_seconds_bucket[5m])) by (tool_name, le)) > 2
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MCP tool {{ $labels.tool_name }} p95 latency above 2s"
+          description: "p95 latency is {{ $value | humanizeDuration }}."
+
+      - alert: HighConcurrentInflight
+        expr: mcp_tool_inflight_total > 10
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High concurrent in-flight tool calls"
+          description: "{{ $value }} concurrent calls — server may be saturated."
+
+      - alert: ToolHallucinationSpike
+        expr: sum(rate(mcp_tool_hallucination_total[5m])) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Tool hallucination detected"
+          description: "Clients are calling non-existent tools at {{ $value }}/s."
+
+  - name: mcp_protocol_alerts
+    rules:
+      - alert: HighJsonRpcErrors
+        expr: sum(rate(mcp_jsonrpc_errors_total[5m])) > 0.5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High JSON-RPC error rate"
+          description: "JSON-RPC errors at {{ $value }}/s."
+
+      - alert: HighMessageLatency
+        expr: histogram_quantile(0.99, sum(rate(mcp_message_latency_seconds_bucket[5m])) by (le)) > 5
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MCP message p99 latency above 5s"
+          description: "p99 latency is {{ $value }}s — users experiencing severe delays."
+
+  - name: mcp_rate_limit_alerts
+    rules:
+      - alert: ClientRateLimited
+        expr: sum(rate(mcp_rate_limit_total[5m])) by (client_id) > 0
+        for: 1m
+        labels:
+          severity: info
+        annotations:
+          summary: "Client {{ $labels.client_id }} is being rate-limited"
+          description: "Rate limit events at {{ $value }}/s."
+
+  - name: mcp_resource_alerts
+    rules:
+      - alert: ResourceAccessErrors
+        expr: sum(rate(mcp_resource_errors_total[5m])) > 0.5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Resource access errors detected"
+          description: "Resource error rate is {{ $value }}/s."
+
+      - alert: ResourceAccessAnomaly
+        expr: sum(rate(mcp_resource_access_anomaly_total[5m])) > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Anomalous resource access pattern detected"
+          description: "Anomaly type: {{ $labels.anomaly_type }}."
+
+  - name: mcp_system_alerts
+    rules:
+      - alert: HighCPUUsage
+        expr: mcp_cpu_usage_percent > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU usage above 90%"
+          description: "CPU is at {{ $value }}%."
+
+      - alert: HighMemoryUsage
+        expr: mcp_memory_usage_mb > 4000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Memory usage above 4GB"
+          description: "Memory is at {{ $value }}MB."
+
+  - name: mcp_session_alerts
+    rules:
+      - alert: SessionDurationAnomaly
+        expr: histogram_quantile(0.95, sum(rate(mcp_session_duration_seconds_bucket[5m])) by (le)) < 5
+        for: 5m
+        labels:
+          severity: info
+        annotations:
+          summary: "Very short session durations detected"
+          description: "p95 session duration is {{ $value }}s — may indicate client frustration or crashes."
