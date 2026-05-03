@@ -1,7 +1,15 @@
-# MCP Server Observability Demo
+# MCP Server Observability
 
-Production-grade example showing how to build full observability for MCP servers
-with Prometheus metrics, Grafana dashboards, distributed tracing (Tempo), and alerting.
+A production-grade observability stack for [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) servers. Any MCP-compatible client can connect — AI assistants (Claude Desktop, Kiro, Cursor), custom applications, or programmatic scripts using the FastMCP client library.
+
+
+This project provides a ready-to-run monitoring setup with:
+- **Prometheus** — 40+ custom metrics across 7 observability layers (tool execution, protocol messages, sessions, resources, agentic/LLM behavior, rate limiting, system health)
+- **Grafana dashboards** — pre-built panels for tool call rates, latency percentiles, error classification, client identification, and concurrency tracking
+- **Distributed tracing (Tempo)** — OpenTelemetry spans for every tool invocation with full context (tool name, client ID, duration, token usage, error details)
+- **Alerting rules** — error rate, latency, CPU thresholds with configurable severity
+
+Includes a MCP server with 7 sample tools, chaos injection for before/after demos, and load testing scripts to generate realistic traffic patterns.
 
 ## Architecture
 
@@ -71,6 +79,47 @@ docker compose up -d --build
 | Prometheus | http://localhost:9090 | — |
 | Grafana | http://localhost:3000 | admin / admin123 |
 | Jaeger UI | http://localhost:16686 | — |
+
+## Connecting Clients
+
+The MCP server listens on `http://localhost:8001/mcp` using the standard **streamable-http** transport. Any MCP client can connect.
+
+### Python (FastMCP client)
+```python
+from fastmcp import Client
+from fastmcp.client.transports import StreamableHttpTransport
+
+transport = StreamableHttpTransport(
+    "http://localhost:8001/mcp",
+    headers={"X-Client-Id": "my-app"},  # optional: identifies your client in metrics
+)
+
+async with Client(transport=transport) as client:
+    result = await client.call_tool("calculate_metrics", {"values": [10, 20, 30, 40, 50]})
+    print(result)
+```
+
+### Claude Desktop / Kiro / Cursor
+Add to your MCP client config (e.g. `claude_desktop_config.json`):
+```json
+{
+  "mcpServers": {
+    "observability-demo": {
+      "url": "http://localhost:8001/mcp"
+    }
+  }
+}
+```
+
+### curl (raw JSON-RPC)
+```bash
+curl -X POST http://localhost:8001/mcp \
+  -H "Content-Type: application/json" \
+  -H "X-Client-Id: curl-test" \
+  -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"health_check","arguments":{"service_url":"http://example.com"}},"id":1}'
+```
+
+The server automatically identifies clients from the `X-Client-Id` header or User-Agent, and tracks per-client metrics in the dashboard.
 
 ## Generate Traffic
 
