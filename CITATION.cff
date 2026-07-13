@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "MCP Server Observability"
+abstract: >-
+  A production-grade observability stack for Model Context Protocol (MCP) servers,
+  providing Prometheus metrics, Grafana dashboards, distributed tracing via
+  OpenTelemetry/Tempo, and alerting rules for tool execution, protocol messages,
+  sessions, resources, and system health.
+authors:
+  - family-names: "Tyagi"
+    given-names: "Anuj"
+    alias: "tyagian"
+repository-code: "https://github.com/tyagian/mcp_server_observability"
+url: "https://github.com/tyagian/mcp_server_observability"
+license: Apache-2.0
+date-released: "2026-05-03"
+keywords:
+  - mcp
+  - model-context-protocol
+  - observability
+  - prometheus
+  - grafana
+  - opentelemetry
+  - distributed-tracing
+  - monitoring

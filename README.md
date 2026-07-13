@@ -160,6 +160,27 @@ python3 scripts/chaos.py off
 9. Disable chaos: `python3 scripts/chaos.py off`
 10. Watch recovery on dashboards
 
+## License & Citation Requirement
+
+This project is licensed under the [Apache License 2.0](LICENSE). Under Section 4(c) and the [NOTICE](NOTICE) file, **you must provide attribution** when using, redistributing, or building upon this software.
+
+If you use this project in academic research, publications, or derivative works, **you are required to cite this repository**. See [`CITATION.cff`](CITATION.cff) for machine-readable metadata — GitHub also provides a "Cite this repository" button in the sidebar.
+
+**BibTeX:**
+```bibtex
+@software{tyagi2026mcpobservability,
+  author       = {Tyagi, Anuj},
+  title        = {MCP Server Observability},
+  year         = {2026},
+  url          = {https://github.com/tyagian/mcp_server_observability},
+  license      = {Apache-2.0},
+  abstract     = {A production-grade observability stack for Model Context Protocol (MCP) servers}
+}
+```
+
+**APA:**
+> Tyagi, A. (2026). *MCP Server Observability* [Computer software]. https://github.com/tyagian/mcp_server_observability
+
 ## MCP Tools
 
 | Tool | Description | Simulated Error |
